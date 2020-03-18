@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<odoo>
+    <record id="view_repo_form" model="ir.ui.view">
+        <field name="model">runbot.repo</field>
+        <field name="inherit_id" ref="runbot.repo_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='hook_time']" position="after">
+                <field name="uses_gitlab"/>
+                <field name="warnings_are_errors" attrs="{'invisible': [('uses_gitlab', '=', False)]}" />
+            </xpath>
+        </field>
+    </record>
+</odoo>

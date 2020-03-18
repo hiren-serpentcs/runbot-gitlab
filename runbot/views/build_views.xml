@@ -1,0 +1,122 @@
+<odoo>
+  <data>
+    <record id="build_form" model="ir.ui.view">
+        <field name="model">runbot.build</field>
+        <field name="arch" type="xml">
+            <form string="Build">
+                <sheet>
+                    <group>
+                        <field name="repo_id"/>
+                        <field name="branch_id"/>
+                        <field name="name"/>
+                        <field name="dependency_ids">
+                            <tree>
+                                <field name="dependecy_repo_id"/>
+                                <field name="dependency_hash"/>
+                                <field name="closest_branch_id"/>
+                                <field name="match_type"/>
+                            </tree>
+                        </field>
+                        <field name="date"/>
+                        <field name="author"/>
+                        <field name="author_email" groups="base.group_no_one"/>
+                        <field name="committer" groups="base.group_no_one"/>
+                        <field name="committer_email" groups="base.group_no_one"/>
+                        <field name="subject"/>
+                        <field name="port" groups="base.group_no_one"/>
+                        <field name="dest"/>
+                        <field name="local_state"/>
+                        <field name="global_state"/>
+                        <field name="requested_action" groups="base.group_no_one"/>
+                        <field name="local_result"/>
+                        <field name="global_result"/>
+                        <field name="triggered_result" groups="base.group_no_one"/>
+                        <field name="host"/>
+                        <field name="job_start" groups="base.group_no_one"/>
+                        <field name="job_end" groups="base.group_no_one"/>
+                        <field name="job_time" groups="base.group_no_one"/>
+                        <field name="build_start" groups="base.group_no_one"/>
+                        <field name="build_end" groups="base.group_no_one"/>
+                        <field name="build_time" groups="base.group_no_one"/>
+                        <field name="build_age" groups="base.group_no_one"/>
+                        <field name="duplicate_id"/>
+                        <field name="build_type"/>
+                        <field name="config_id"/>
+                        <field name="config_data"/>
+                        <field name="parent_id"/>
+                        <field name="orphan_result"/>
+                        <field name="hidden" groups="base.group_no_one"/>
+                        <field name="build_url" widget="url" readonly="1"/>
+                        <field name="keep_running"/>
+                        <field name="gc_date" readonly="1"/>
+                        <field name="gc_delay"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="view_build_tree" model="ir.ui.view">
+        <field name="model">runbot.build</field>
+        <field name="arch" type="xml">
+            <tree string="Builds">
+                <field name="repo_id"/>
+                <field name="dest"/>
+                <field name="date"/>
+                <field name="author"/>
+                <field name="committer"/>
+                <field name="global_state"/>
+                <field name="global_result"/>
+                <field name="port"/>
+                <field name="job"/>
+                <field name="coverage_result"/>
+                <field name="host"/>
+                <field name="build_time"/>
+                <field name="build_age"/>
+            </tree>
+        </field>
+    </record>
+    <record id="view_build_pivot" model="ir.ui.view">
+        <field name="name">runbot.pivot</field>
+        <field name="model">runbot.build</field>
+        <field name="arch" type="xml">
+            <pivot string="Builds analysis">
+                <field name="create_date" interval="week" type="row"/>
+                <field name="global_state" type="col"/>
+            </pivot>
+        </field>
+    </record>
+    <record id="view_build_search" model="ir.ui.view">
+        <field name="model">runbot.build</field>
+        <field name="arch" type="xml">
+            <search string="Search builds">
+                <field name="id"/>
+                <field name="branch_id"/>
+                <field name="name"/>
+                <field name="global_state"/>
+                <field name="dest"/>
+                <filter string="Pending" name='pending' domain="[('global_state','=', 'pending')]"/>
+                <filter string="Testing" name='testing' domain="[('global_state','in', ('testing', 'waiting'))]"/>
+                <filter string="Running" name='running' domain="[('global_state','=', 'running')]"/>
+                <filter string="Done" name='done' domain="[('global_state','=','done')]"/>
+                <filter string="Duplicate" name='duplicate' domain="[('local_state','=', 'duplicate')]"/>
+                <group expand="0" string="Group By...">
+                    <filter string="Repo" name='repo' domain="[]" context="{'group_by':'repo_id'}"/>
+                    <filter string="Branch" name='branch' domain="[]" context="{'group_by':'branch_id'}"/>
+                    <filter string="Status" name='status' domain="[]" context="{'group_by':'global_state'}"/>
+                    <filter string="Result" name='result' domain="[]" context="{'group_by':'global_result'}"/>
+                    <filter string="Start" name='start' domain="[]" context="{'group_by':'job_start'}"/>
+                    <filter string="Host" name='host' domain="[]" context="{'group_by':'host'}"/>
+                    <filter string="Create Date" name='create_date' domain="[]" context="{'group_by':'create_date'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+    <record id="action_build" model="ir.actions.act_window">
+        <field name="name">Builds</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">runbot.build</field>
+        <field name="view_mode">tree,form,graph,pivot</field>
+    </record>
+    <menuitem id="menu_build" action="action_build" parent="runbot_menu_root"/>
+  </data>
+</odoo>
