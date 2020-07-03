@@ -87,8 +87,8 @@ RUN pip install --no-cache-dir -r /root/p2-requirements.txt coverage flanker==0.
     && pip3 install --no-cache-dir -r /root/p3-requirements.txt coverage==4.5.4 websocket-client astroid==2.0.4 \
     pylint==1.7.2 phonenumbers pyCrypto dbfread==2.0.7 firebase-admin==2.17.0 flamegraph pdfminer.six==20181108
 
-RUN groupadd -g 1000 odoo \
-&& useradd -u 1000 -g odoo -G audio,video odoo \
+RUN groupadd -g 1005 odoo \
+&& useradd -u 1004 -g odoo -G audio,video odoo \
 && mkdir /home/odoo \
 && chown -R odoo:odoo /home/odoo \
 && echo "odoo ALL= NOPASSWD: /usr/bin/pip" > /etc/sudoers.d/pip \

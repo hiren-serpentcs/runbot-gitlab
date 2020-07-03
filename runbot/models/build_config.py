@@ -343,8 +343,11 @@ class ConfigStep(models.Model):
         cmd += ['-d', db_name]
         # list module to install
         extra_params = build.extra_params or self.extra_params or ''
+        _logger.debug("Module list::::::::::::::::::::%s", mods)
         if mods and '-i' not in extra_params:
             cmd += ['-i', mods]
+        else:
+            cmd += ['-i base']
         config_path = build._server("tools/config.py")
         if self.test_enable:
             if grep(config_path, "test-enable"):

@@ -1,5 +1,0 @@
-Docker command:
-python /home/serpentcs/Desktop/odoo.conf --addons-path abc.git --max-cron-threads 0 -d 00028-master-8d5a9e-all --smtp 172.17.0.1
-=================================================
-Adding readonly volume 'abc.git' pointing to /home/serpentcs/workspace/projects/runbot_13/custom_modules/runbot/static/sources/abc.git/8d5a9ef9f6671bbdf7363352f2ebb56bfc068ac4 
-python: can't open file '/home/serpentcs/Desktop/odoo.conf': [Errno 2] No such file or directory

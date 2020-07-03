@@ -322,6 +322,7 @@ class runbot_branch(models.Model):
 
         default_target_ref = 'refs/heads/master'
         default_branch = self.search([('repo_id', 'in', target_repo_ids), ('name', '=', default_target_ref)], limit=1)
+        _logger.warn('----------------%s-------------------', default_target_ref)
         # we assume that master will always exists
         return (default_branch, 'default')
 

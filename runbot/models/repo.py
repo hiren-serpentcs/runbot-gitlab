@@ -174,12 +174,17 @@ class runbot_repo(models.Model):
     def _git(self, cmd):
         """Execute a git command 'cmd'"""
         self.ensure_one()
-        _logger.debug("git command: git (dir %s) %s", self.short_name, ' '.join(cmd))
+        # _logger.debug("git command: git --git-dir= %s %s", self.path, ' '.join(cmd))
+        _logger.debug("git command: git --git-dir= %s %s", self.path, cmd)
         cmd = ['git', '--git-dir=%s' % self.path] + cmd
         return subprocess.check_output(cmd).decode('utf-8')
 
     def _git_rev_parse(self, branch_name):
-        return self._git(['rev-parse', branch_name]).strip()
+        _logger.debug("Finding the revision of branch: %s", branch_name)
+        rev_parse = self._git(['rev-parse', branch_name])
+        _logger.debug("Fetched revision: %s", rev_parse)
+        if rev_parse:
+            return rev_parse.strip()
 
     def _git_export(self, sha):
         """Export a git repo into a sources"""
@@ -414,7 +419,8 @@ class runbot_repo(models.Model):
         fname_fetch_head = os.path.join(repo.path, 'FETCH_HEAD')
         if not force and os.path.isfile(fname_fetch_head):
             fetch_time = os.path.getmtime(fname_fetch_head)
-            self._update_fetch_cmd()
+            # kng: the following is not in upstream and breaks hook mode.
+            #self._update_fetch_cmd()
             if repo.mode == 'hook' and (not repo.hook_time or repo.hook_time < fetch_time):
                 t0 = time.time()
                 _logger.debug('repo %s skip hook fetch fetch_time: %ss ago hook_time: %ss ago',

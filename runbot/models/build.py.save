@@ -273,8 +273,10 @@ class runbot_build(models.Model):
                     closest_name = build_closest_branch.name or 'refs/heads/13.0'
                     closest_branch_repo = build_closest_branch.repo_id or extra_repo
                     last_commit = closest_branch_repo._git_rev_parse(closest_name)
+                    _logger.debug("last_commit--------------------- %s ------------------------", build_closest_branch)
                     message = 'Dependency for repo %s defined from closest branch %s' % (repo_name, closest_name)
                 try:
+                    _logger.debug("last_commit--------------------- %s", last_commit)
                     commit_oneline = extra_repo._git(['show', '--pretty="%H -- %s"', '-s', last_commit]).strip()
                 except CalledProcessError:
                     commit_oneline = 'Commit %s not found on build creation' % last_commit
@@ -290,39 +292,6 @@ class runbot_build(models.Model):
                 })
             for dep_vals in dep_create_vals:
                 self.env['runbot.build.dependency'].sudo().create(dep_vals)
-
-        # Get module from the module_dependency.txt file
-        extra_depending_vals = []
-        for commit in self._get_all_commit():
-            if commit.sha:
-                _logger.debug("===================>>>>>>>>>>>>>>>>>>>>>>>>>>>>> %s", commit.sha)
-                if os.path.isfile(commit._source_path('module_dependency.txt')):
-                    _logger.debug("Creating Build: Found the module_dependency.txt File in the commit: %s ", commit.sha)
-                    for depending_repo in commit.read_source('module_dependency.txt').readlines():
-                        _logger.debug("Creating Build: Getting the modules from %s", depending_repo)
-                        depending_branch_id = self.env['runbot.branch'].search([('branch_url', '=', depending_repo)])
-                        if depending_branch_id:
-                            _logger.debug("Creating Build: Found the Depending Repo: %s", depending_branch_id.repo_id.name)
-                            depending_repo = depending_branch_id.repo_id
-                            (build_depending_branch, match_type) = branch_id._get_closest_branch(depending_repo.id)
-                            depending_name = build_depending_branch.name or depending_branch_id.name
-                            depenging_branch_repo = build_closest_branch.repo_id or depending_repo
-                            last_commit = depenging_branch_repo._git_rev_parse(closest_name)
-                            message = 'Dependency for repo %s defined from closest branch %s' % (repo_name, closest_name)
-                            try:
-                                commit_oneline = depending_repo._git(['show', '--pretty="%H -- %s"', '-s', last_commit]).strip()
-                            except CalledProcessError:
-                                commit_oneline = 'Commit %s not found on build creation' % last_commit
-                            build_id._log('create', '%s: %s' % (message, commit_oneline))
-                            extra_depending_vals.append({
-                                'build_id': build_id.id,
-                                'dependecy_repo_id': depending_repo.id,
-                                'closest_branch_id': build_depending_branch and build_depending_branch.id,
-                                'dependency_hash': last_commit,
-                                'match_type': match_type,
-                            })
-            for dep_vals in extra_depending_vals:
-                 self.env['runbot.build.dependency'].sudo().create(dep_vals)
 
         if not self.env.context.get('force_rebuild') and not vals.get('build_type') == 'rebuild':
             # detect duplicate
@@ -815,13 +784,10 @@ class runbot_build(models.Model):
 
     def _get_available_modules(self, commit):
         for manifest_file_name in commit.repo.manifest_files.split(','):  # '__manifest__.py' '__openerp__.py'
-            _logger.debug(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> %s ", manifest_file_name)
             for addons_path in (commit.repo.addons_paths or '').split(','):  # '' 'addons' 'odoo/addons'
-                _logger.debug(">>>>>>>>>>>>>>>>>>>>>>>>>>>addons_path>>>>>>>>>>>>>>> %s ", addons_path)
                 sep = os.path.join(addons_path, '*')
                 for manifest_path in glob.glob(commit._source_path(sep, manifest_file_name)):
                     module = os.path.basename(os.path.dirname(manifest_path))
-                    _logger.debug(">>>>>>>>>>>>>>>>>>>>>>>>>>>module>>>>>>>>>>>>>>> %s ", module)
                     yield (addons_path, module, manifest_file_name)
 
     def _docker_source_folder(self, commit):
@@ -848,9 +814,7 @@ class runbot_build(models.Model):
         available_modules = []
         repo_modules = []
         for commit in commits or self._get_all_commit():
-            _logger.debug("SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSs %s", self._get_available_modules(commit))
             for (addons_path, module, manifest_file_name) in self._get_available_modules(commit):
-                _logger.debug("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA %s", module)
                 if commit.repo == self.repo_id:
                     repo_modules.append(module)
                 if module in available_modules:
@@ -868,7 +832,7 @@ class runbot_build(models.Model):
 
         # checkout branch
         repo_modules, available_modules = self._get_repo_available_modules(commits=commits)
-        _logger.debug("MODULE LIST ========================= %s, %s", repo_modules, available_modules)
+
         patterns_list = []
         for pats in [self.repo_id.modules, self.branch_id.modules, modules_patterns]:
             patterns_list += [p.strip() for p in (pats or '').split(',')]
@@ -1016,7 +980,6 @@ class runbot_build(models.Model):
         addons_paths = self._get_addons_path()
         # addons_paths = ",".join(addons_paths)
         for commit in self._get_all_commit():
-            pres.append(['sudo', 'pip%s' % py_version, 'install', 'Unidecode'])
             if os.path.isfile(commit._source_path('requirements.txt')):
                 repo_dir = self._docker_source_folder(commit)
                 requirement_path = os.path.join(repo_dir, 'requirements.txt')
@@ -1026,8 +989,8 @@ class runbot_build(models.Model):
 
         # commandline
         cmd = ['python%s' % py_version] + python_params + [os.path.join(server_dir, server_file), '--addons-path', ",".join(addons_paths)]
-        # cmd.append("-i base")
-        _logger.debug("commandline---------------------- %s", " ".join(cmd))
+ 
+        _logger.debug("commandline---------------------- %s", "".join(cmd))
 
         # options
         config_path = build._server("tools/config.py")
