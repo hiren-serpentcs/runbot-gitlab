@@ -20,6 +20,15 @@ odoo/filestore
 # maintenance migration scripts
 odoo/addons/base/maintenance
 
+#runbot_statics
+runbot/static/build
+runbot/static/docker
+runbot/static/nginx
+runbot/static/repo
+runbot/static/sources
+
+
+
 # generated for windows installer?
 install/win32/*.bat
 install/win32/meta.py
